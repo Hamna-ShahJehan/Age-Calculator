@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Age Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Times New Roman', Times, serif;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: rgb(55, 53, 228);
+            background: linear-gradient(90deg, rgba(55, 53, 228, 1) 0%, rgba(107, 107, 235, 1) 82%);
+        }
+
+        .calculator-card {
+            background-color: aliceblue;
+            width: 100%;
+            max-width: 450px;
+            padding: 40px 30px;
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(27, 22, 118, 0.3);
+            text-align: center;
+        }
+
+        h1 {
+            color: #1e293b;
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        p.subtitle {
+            color: #64748b;
+            font-size: 15px;
+            margin-bottom: 28px;
+        }
+
+        .input-group {
+            margin-bottom: 24px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            color: #475569;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px 16px;
+            font-size: 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            background-color: #ffffff;
+            color: #1e293b;
+            outline: none;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        input:focus {
+            border-color: rgb(55, 53, 228);
+            box-shadow: 0 0 0 4px rgba(55, 53, 228, 0.15);
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid transparent;
+            border-radius: 12px;
+            background-color: rgb(55, 53, 228);
+            color: white;
+            box-shadow: 0 4px 12px rgba(55, 53, 228, 0.25);
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background-color: transparent;
+            border-color: rgb(55, 53, 228);
+            color: rgb(55, 53, 228);
+            box-shadow: 0 4px 12px rgba(55, 53, 228, 0);
+        }
+
+        .result-container {
+            margin-top: 28px;
+            padding-top: 24px;
+            border-top: 2px dashed #e2e8f0;
+            display: none;
+            /* Hidden by default until calculated */
+        }
+
+        .result-text {
+            font-size: 18px;
+            color: #334155;
+            font-weight: 500;
+        }
+
+        .highlight {
+            color: rgb(55, 53, 228);
+            font-weight: 700;
+            font-size: 24px;
+            display: block;
+            margin-top: 8px;
+        }
+
+        .error-text {
+            color: #ef4444;
+            font-size: 14px;
+            margin-top: 8px;
+            display: none;
+        }
+
+        @media (max-width: 480px) {
+            .calculator-card {
+                padding: 30px 20px;
+            }
+
+            h1 {
+                font-size: 26px;
+            }
+
+            .highlight {
+                font-size: 20px;
+
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="calculator-card">
+        <h1>Age Calculator</h1>
+        <p class="subtitle">Enter your date of birth to calculate your exact age</p>
+
+        <div class="input-group">
+            <label for="dob">Date of Birth</label>
+            <input type="date" id="dob" required>
+            <div id="error-message" class="error-text">Please select a valid date from the past.</div>
+        </div>
+
+        <button id="calculate-btn">Calculate Age</button>
+
+        <div class="result-container" id="result-box">
+            <p class="result-text">Your exact age is:</p>
+            <span class="highlight" id="age-output">--</span>
+        </div>
+    </div>
+
+    <script>
+        const dobInput = document.getElementById('dob');
+        const calculateBtn = document.getElementById('calculate-btn');
+        const resultBox = document.getElementById('result-box');
+        const ageOutput = document.getElementById('age-output');
+        const errorMessage = document.getElementById('error-message');
+        // Set maximum selectable date to today automatically
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        dobInput.max = `${yyyy}-${mm}-${dd}`;
+        const calculateAge = () => {
+            const dobValue = dobInput.value;
+            if (!dobValue) {
+                showError("Please select a date first.");
+                return;
+            }
+
+            const birthDate = new Date(dobValue);
+            const currentDate = new Date();
+
+            if (birthDate > currentDate) {
+                showError("Date of birth cannot be in the future!");
+                return;
+            }
+
+            // Hide errors if input is valid
+            errorMessage.style.display = 'none';
+
+            let years = currentDate.getFullYear() - birthDate.getFullYear();
+            let months = currentDate.getMonth() - birthDate.getMonth();
+            let days = currentDate.getDate() - birthDate.getDate();
+
+            // Adjust days if negative
+            if (days < 0) {
+                months--;
+                // Find total days in the previous month
+                const previousMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 0).getDate();
+                days += previousMonth;
+            }
+
+            // Adjust months if negative
+            if (months < 0) {
+                years--;
+                months += 12;
+            }
+
+            // Generate output message
+            let resultString = "";
+            if (years > 0) resultString += `${years} year${years > 1 ? 's' : ''} `;
+            if (months > 0) resultString += `${months} month${months > 1 ? 's' : ''} `;
+            if (days > 0 || resultString === "") resultString += `${days} day${days > 1 ? 's' : ''}`;
+
+            // Render output with a sleek smooth display transition
+            ageOutput.textContent = resultString.trim();
+            resultBox.style.display = 'block';
+        };
+
+        calculateBtn.addEventListener('click', calculateAge);
+
+        // Allow pressing "Enter" key to trigger calculation
+        dobInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                calculateAge();
+            }
+        });
+    </script>
+</body>
+
+</html>
